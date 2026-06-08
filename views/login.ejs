@@ -1,0 +1,45 @@
+<%- include('partials/header') %>
+
+<div class="auth-container">
+  <div class="auth-brand">
+    <i class="bi bi-sunrise-fill"></i>
+    <h1>DawnCast</h1>
+    <p>The news, before the noise.</p>
+  </div>
+
+  <div class="glass-card">
+    <% if (error) { %>
+      <div class="alert alert-danger mb-3"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/login">
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text" style="background: rgba(255,255,255,0.06); border-color: var(--border); color: var(--text-muted);">
+            <i class="bi bi-envelope-fill"></i>
+          </span>
+          <input type="email" class="form-control" name="email" placeholder="Email" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text" style="background: rgba(255,255,255,0.06); border-color: var(--border); color: var(--text-muted);">
+            <i class="bi bi-lock-fill"></i>
+          </span>
+          <input type="password" class="form-control" name="password" placeholder="Password" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-accent w-100 mb-3">Log In</button>
+    </form>
+
+    <div class="divider">
+      <hr><span>or</span><hr>
+    </div>
+
+    <a href="/signup" class="btn btn-glass w-100">Create an Account</a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,74 @@
+<%- include('partials/header') %>
+
+<div class="auth-container">
+  <div class="auth-brand">
+    <i class="bi bi-sunrise-fill"></i>
+    <h1>DawnCast</h1>
+    <p>Create your account</p>
+  </div>
+
+  <div class="glass-card">
+    <% if (error) { %>
+      <div class="alert alert-danger mb-3"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/signup">
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text" style="background: rgba(255,255,255,0.06); border-color: var(--border); color: var(--text-muted);">
+            <i class="bi bi-person-fill"></i>
+          </span>
+          <input type="text" class="form-control" name="firstName" placeholder="First Name" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text" style="background: rgba(255,255,255,0.06); border-color: var(--border); color: var(--text-muted);">
+            <i class="bi bi-person-fill"></i>
+          </span>
+          <input type="text" class="form-control" name="lastName" placeholder="Last Name" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text" style="background: rgba(255,255,255,0.06); border-color: var(--border); color: var(--text-muted);">
+            <i class="bi bi-envelope-fill"></i>
+          </span>
+          <input type="email" class="form-control" name="email" placeholder="Email" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text" style="background: rgba(255,255,255,0.06); border-color: var(--border); color: var(--text-muted);">
+            <i class="bi bi-lock-fill"></i>
+          </span>
+          <input type="password" class="form-control" name="password" placeholder="Password" minlength="6" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text" style="background: rgba(255,255,255,0.06); border-color: var(--border); color: var(--text-muted);">
+            <i class="bi bi-lock-fill"></i>
+          </span>
+          <input type="password" class="form-control" name="confirmPassword" placeholder="Confirm Password" minlength="6" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-accent w-100 mb-3">Create Account</button>
+    </form>
+
+    <div class="divider">
+      <hr><span>or</span><hr>
+    </div>
+
+    <a href="/login" class="btn btn-glass w-100">
+      Already have an account? <strong>Log In</strong>
+    </a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

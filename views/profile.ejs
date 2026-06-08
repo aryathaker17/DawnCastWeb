@@ -1,0 +1,179 @@
+<%- include('partials/header') %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="text-center mb-4">
+      <i class="bi bi-person-circle" style="font-size: 72px; color: var(--accent);"></i>
+      <h5 class="mt-2"><%= user.email %></h5>
+    </div>
+
+    <% if (success) { %>
+      <div class="alert alert-success mb-3"><%= success %></div>
+    <% } %>
+
+    <form method="POST" action="/profile/update" id="profile-form">
+
+      <!-- Country -->
+      <div class="pref-section">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Your Country</h5>
+          <button type="button" class="btn btn-sm btn-outline-warning" onclick="toggleEdit('country')">Edit</button>
+        </div>
+        <div id="country-display" class="mt-2">
+          <span class="pref-tag"><%= countryName %></span>
+        </div>
+        <div id="country-edit" style="display: none;" class="mt-2">
+          <div class="d-flex flex-wrap gap-2">
+            <% countries.forEach(c => { %>
+              <label class="chip <%= selectedCountry === c.code ? 'selected' : '' %>">
+                <input type="radio" name="country" value="<%= c.code %>" <%= selectedCountry === c.code ? 'checked' : '' %> onchange="selectRadioChip(this)">
+                <%= c.name %>
+              </label>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Topics -->
+      <div class="pref-section">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Your Topics</h5>
+          <button type="button" class="btn btn-sm btn-outline-warning" onclick="toggleEdit('topics')">Edit</button>
+        </div>
+        <div id="topics-display" class="mt-2">
+          <% if (selectedTopics.length === 0) { %>
+            <span style="color: var(--text-muted);">None selected</span>
+          <% } else { %>
+            <% selectedTopics.forEach(t => { %>
+              <span class="pref-tag"><%= t.charAt(0).toUpperCase() + t.slice(1) %></span>
+            <% }) %>
+          <% } %>
+        </div>
+        <div id="topics-edit" style="display: none;" class="mt-2">
+          <div class="d-flex flex-wrap gap-2">
+            <% categories.forEach(cat => { %>
+              <label class="chip <%= selectedTopics.includes(cat) ? 'selected' : '' %>" onclick="toggleChip(this)">
+                <input type="checkbox" name="topics" value="<%= cat %>" <%= selectedTopics.includes(cat) ? 'checked' : '' %>>
+                <%= cat.charAt(0).toUpperCase() + cat.slice(1) %>
+              </label>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sources -->
+      <div class="pref-section">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Your Sources</h5>
+          <button type="button" class="btn btn-sm btn-outline-warning" onclick="toggleEdit('sources')">Edit</button>
+        </div>
+        <div id="sources-display" class="mt-2">
+          <% if (selectedSources.length === 0) { %>
+            <span style="color: var(--text-muted);">None selected</span>
+          <% } else { %>
+            <% selectedSources.forEach(s => { %>
+              <span class="pref-tag"><%= s %></span>
+            <% }) %>
+          <% } %>
+        </div>
+        <div id="sources-edit" style="display: none;" class="mt-2">
+          <div id="limit-message" class="limit-message" style="display: none;">
+            You can only select up to 4 sources.
+          </div>
+          <input type="text" class="form-control mb-2" id="source-search" placeholder="Search sources...">
+          <div id="sources-container" class="d-flex flex-wrap gap-2">
+            <div class="spinner-border spinner-border-sm text-light" role="status"></div>
+            <span style="color: var(--text-muted); margin-left: 8px;">Loading sources...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save & Logout -->
+      <button type="submit" class="btn btn-accent w-100 mb-3">Save Preferences</button>
+    </form>
+
+    <a href="/logout" class="btn btn-glass w-100 mb-5">Log Out</a>
+  </div>
+</div>
+
+<script>
+  const MAX_SOURCES = 4;
+  let allSources = [];
+  const currentSelected = new Set(<%= JSON.stringify(selectedSources) %>);
+  let sourcesLoaded = false;
+
+  function toggleEdit(section) {
+    const display = document.getElementById(section + '-display');
+    const edit = document.getElementById(section + '-edit');
+    const isHidden = edit.style.display === 'none';
+    display.style.display = isHidden ? 'none' : 'block';
+    edit.style.display = isHidden ? 'block' : 'none';
+
+    if (section === 'sources' && isHidden && !sourcesLoaded) {
+      loadSources();
+      sourcesLoaded = true;
+    }
+  }
+
+  function toggleChip(label) {
+    const checkbox = label.querySelector('input[type="checkbox"]');
+    setTimeout(() => {
+      label.classList.toggle('selected', checkbox.checked);
+    }, 0);
+  }
+
+  function selectRadioChip(radio) {
+    document.querySelectorAll('input[name="' + radio.name + '"]').forEach(r => {
+      r.closest('label').classList.toggle('selected', r.checked);
+    });
+  }
+
+  async function loadSources() {
+    const resp = await fetch('/profile/sources-data');
+    allSources = await resp.json();
+    renderSources(allSources);
+  }
+
+  function renderSources(sources) {
+    const container = document.getElementById('sources-container');
+    container.innerHTML = '';
+    if (sources.length === 0) {
+      container.innerHTML = '<p style="color: var(--text-muted);">No sources found.</p>';
+      return;
+    }
+    sources.forEach(s => {
+      const label = document.createElement('label');
+      label.className = 'chip' + (currentSelected.has(s.domain) ? ' selected' : '');
+      label.innerHTML = `<input type="checkbox" name="sources" value="${s.domain}" ${currentSelected.has(s.domain) ? 'checked' : ''}> ${s.name || s.domain}`;
+      label.onclick = () => {
+        const cb = label.querySelector('input');
+        setTimeout(() => {
+          if (cb.checked && currentSelected.size >= MAX_SOURCES) {
+            cb.checked = false;
+            document.getElementById('limit-message').style.display = 'block';
+            return;
+          }
+          document.getElementById('limit-message').style.display = 'none';
+          if (cb.checked) {
+            currentSelected.add(s.domain);
+            label.classList.add('selected');
+          } else {
+            currentSelected.delete(s.domain);
+            label.classList.remove('selected');
+          }
+        }, 0);
+      };
+      container.appendChild(label);
+    });
+  }
+
+  document.getElementById('source-search').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    const filtered = allSources.filter(s =>
+      (s.name || '').toLowerCase().includes(q) || s.domain.toLowerCase().includes(q)
+    );
+    renderSources(filtered);
+  });
+</script>
+
+<%- include('partials/footer') %>

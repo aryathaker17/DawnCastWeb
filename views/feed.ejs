@@ -1,0 +1,49 @@
+<%- include('partials/header') %>
+
+<h4 class="mb-4 fw-bold">Your Feed</h4>
+
+<% if (error) { %>
+  <div class="empty-state">
+    <i class="bi bi-exclamation-triangle"></i>
+    <h4>Oops</h4>
+    <p><%= error %></p>
+    <a href="/feed" class="btn btn-glass mt-2">Retry</a>
+  </div>
+<% } else if (articles.length === 0) { %>
+  <div class="empty-state">
+    <i class="bi bi-newspaper"></i>
+    <h4>No Articles Found</h4>
+    <p>Try adjusting your topics in your <a href="/profile" style="color: var(--accent);">Profile</a>.</p>
+  </div>
+<% } else { %>
+  <div class="row g-3">
+    <% articles.forEach(article => { %>
+      <div class="col-md-6 col-lg-4">
+        <a href="<%= article.link || '#' %>" target="_blank" rel="noopener" class="article-card">
+          <% if (article.image_url) { %>
+            <img src="<%= article.image_url %>" alt="" loading="lazy"
+                 onerror="this.style.display='none'">
+          <% } %>
+          <div class="card-body">
+            <% if (article.title) { %>
+              <div class="card-title"><%= article.title %></div>
+            <% } %>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <% if (article.source_name) { %>
+                <span class="card-source"><%= article.source_name %></span>
+              <% } %>
+              <% if (article.pubDate) { %>
+                <span class="card-date"><%= article.pubDate %></span>
+              <% } %>
+            </div>
+            <% if (article.description) { %>
+              <div class="card-desc"><%= article.description %></div>
+            <% } %>
+          </div>
+        </a>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

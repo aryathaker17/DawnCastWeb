@@ -1,0 +1,59 @@
+<%- include('partials/header') %>
+
+<h4 class="mb-4 fw-bold">Summary</h4>
+
+<% if (error) { %>
+  <div class="empty-state">
+    <i class="bi bi-exclamation-triangle"></i>
+    <h4>Oops</h4>
+    <p><%= error %></p>
+    <a href="/summary" class="btn btn-glass mt-2">Retry</a>
+  </div>
+<% } else if (summaries.length === 0) { %>
+  <div class="empty-state">
+    <i class="bi bi-file-text"></i>
+    <h4>No Summaries Available</h4>
+    <p>No articles found for your selected categories. Try adjusting your topics in <a href="/profile" style="color: var(--accent);">Profile</a>.</p>
+  </div>
+<% } else { %>
+  <%
+    const iconMap = {
+      politics: 'building', business: 'graph-up', technology: 'cpu',
+      science: 'atom', sports: 'trophy', health: 'heart-pulse',
+      entertainment: 'film', environment: 'tree', education: 'mortarboard',
+      food: 'cup-hot', world: 'globe', crime: 'shield-exclamation',
+      lifestyle: 'stars', tourism: 'airplane', domestic: 'house',
+      top: 'star', other: 'newspaper'
+    };
+  %>
+
+  <div class="row g-4">
+    <% summaries.forEach(s => { %>
+      <div class="col-12">
+        <div class="summary-card">
+          <div class="category-header">
+            <i class="bi bi-<%= iconMap[s.category] || 'newspaper' %>"></i>
+            <%= s.category.charAt(0).toUpperCase() + s.category.slice(1) %>
+          </div>
+          <div class="summary-text"><%= s.text %></div>
+
+          <hr style="border-color: var(--border); opacity: 0.3;">
+
+          <div>
+            <small style="color: var(--text-muted); font-weight: 600;">Stories referenced:</small>
+            <% s.articles.forEach(article => { %>
+              <div class="mt-1">
+                <a href="<%= article.link || '#' %>" target="_blank" rel="noopener" class="ref-link">
+                  <i class="bi bi-arrow-up-right"></i>
+                  <%= article.title || 'Untitled' %>
+                </a>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

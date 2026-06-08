@@ -1,0 +1,150 @@
+<%- include('partials/header') %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+
+    <!-- Step dots -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div class="step-dots">
+        <div class="step-dot <%= step >= 1 ? 'active' : '' %>"></div>
+        <div class="step-dot <%= step >= 2 ? 'active' : '' %>"></div>
+        <div class="step-dot <%= step >= 3 ? 'active' : '' %>"></div>
+      </div>
+      <a href="/logout" class="nav-link" style="color: var(--text-muted); font-size: 0.875rem;">Log Out</a>
+    </div>
+
+    <% if (step === 1) { %>
+      <!-- STEP 1: Country Selection -->
+      <div class="onboarding-header">
+        <h2>Where are you located?</h2>
+        <p>Select your country for local news</p>
+      </div>
+
+      <form method="POST" action="/onboarding/country">
+        <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
+          <% countries.forEach(c => { %>
+            <label class="chip <%= selectedCountry === c.code ? 'selected' : '' %>">
+              <input type="radio" name="country" value="<%= c.code %>" <%= selectedCountry === c.code ? 'checked' : '' %> onchange="this.form.submit()">
+              <%= c.name %>
+            </label>
+          <% }) %>
+        </div>
+        <noscript><button type="submit" class="btn btn-accent">Next</button></noscript>
+      </form>
+
+    <% } else if (step === 2) { %>
+      <!-- STEP 2: Topic Selection -->
+      <div class="onboarding-header">
+        <h2>What interests you?</h2>
+        <p>Select topics you'd like to follow</p>
+      </div>
+
+      <form method="POST" action="/onboarding/topics" id="topics-form">
+        <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
+          <% categories.forEach(cat => { %>
+            <label class="chip <%= selectedTopics.includes(cat) ? 'selected' : '' %>" onclick="toggleChip(this)">
+              <input type="checkbox" name="topics" value="<%= cat %>" <%= selectedTopics.includes(cat) ? 'checked' : '' %>>
+              <%= cat.charAt(0).toUpperCase() + cat.slice(1) %>
+            </label>
+          <% }) %>
+        </div>
+        <div class="text-center">
+          <button type="submit" class="btn btn-accent px-5">Next</button>
+        </div>
+      </form>
+
+      <script>
+        function toggleChip(label) {
+          const checkbox = label.querySelector('input[type="checkbox"]');
+          // Toggle happens automatically; just toggle the class
+          setTimeout(() => {
+            label.classList.toggle('selected', checkbox.checked);
+          }, 0);
+        }
+      </script>
+
+    <% } else if (step === 3) { %>
+      <!-- STEP 3: Source Selection -->
+      <div class="onboarding-header">
+        <h2>Choose your sources</h2>
+        <p>Select where you'd like to get your news (max 4)</p>
+      </div>
+
+      <div id="limit-message" class="limit-message" style="display: none;">
+        You can only select up to 4 sources.
+      </div>
+
+      <input type="text" class="form-control mb-3" id="source-search" placeholder="Search sources...">
+
+      <form method="POST" action="/onboarding/sources" id="sources-form">
+        <div id="sources-container" class="d-flex flex-wrap gap-2 justify-content-center mb-4">
+          <div class="loading-container">
+            <div class="spinner-border text-light" role="status"></div>
+            <p>Loading sources...</p>
+          </div>
+        </div>
+        <div class="text-center">
+          <button type="submit" class="btn btn-accent px-5">Done</button>
+        </div>
+      </form>
+
+      <script>
+        const MAX_SOURCES = 4;
+        let allSources = [];
+        const selected = new Set(<%= JSON.stringify(selectedSources) %>);
+
+        async function loadSources() {
+          const resp = await fetch('/onboarding/sources-data');
+          allSources = await resp.json();
+          renderSources(allSources);
+        }
+
+        function renderSources(sources) {
+          const container = document.getElementById('sources-container');
+          container.innerHTML = '';
+          if (sources.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">No sources found.</p>';
+            return;
+          }
+          sources.forEach(s => {
+            const label = document.createElement('label');
+            label.className = 'chip' + (selected.has(s.domain) ? ' selected' : '');
+            label.innerHTML = `<input type="checkbox" name="sources" value="${s.domain}" ${selected.has(s.domain) ? 'checked' : ''}> ${s.name || s.domain}`;
+            label.onclick = () => {
+              const cb = label.querySelector('input');
+              setTimeout(() => {
+                if (cb.checked && selected.size >= MAX_SOURCES) {
+                  cb.checked = false;
+                  document.getElementById('limit-message').style.display = 'block';
+                  return;
+                }
+                document.getElementById('limit-message').style.display = 'none';
+                if (cb.checked) {
+                  selected.add(s.domain);
+                  label.classList.add('selected');
+                } else {
+                  selected.delete(s.domain);
+                  label.classList.remove('selected');
+                }
+              }, 0);
+            };
+            container.appendChild(label);
+          });
+        }
+
+        document.getElementById('source-search').addEventListener('input', (e) => {
+          const q = e.target.value.toLowerCase();
+          const filtered = allSources.filter(s =>
+            (s.name || '').toLowerCase().includes(q) || s.domain.toLowerCase().includes(q)
+          );
+          renderSources(filtered);
+        });
+
+        loadSources();
+      </script>
+    <% } %>
+
+  </div>
+</div>
+
+<%- include('partials/footer') %>
